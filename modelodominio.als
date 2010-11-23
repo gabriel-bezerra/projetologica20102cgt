@@ -1,70 +1,90 @@
 module Onibus
 
-sig Localizacao {
+// Mapa Viario
+one sig MapaViario {
+    vias : some Via
 }
 
-sig Onibus {
-    linha : one Linha,
-    localizacao : one Localizacao
+// Via
+sig Via { 
 }
 
-some sig Linha {
-    onibus : some Onibus,
-    rota: one Rota
+fact TodaViaEstaEmMapaViario {
+    Via in MapaViario.vias
 }
 
-sig Via {
-    localizacoes : set Localizacao 
-}
-
-sig  Parada {
-    localizacao : one Localizacao
-}
-
+// Rota
 sig Rota { 
     percurso : some Via,
     paradas : some Parada
 }
 
-one sig MapaViario {
-    vias : some Via
+fact TodaRotaPossuiMaisDeUmaParada {
+    all r : Rota | #r.paradas > 1
 }
 
-fact NaoHaRotaSemLinha {
-    all r : Rota | r in Linha.rota
+fact TodaRotaPertenceAUmaUnicaLinha {
+    all r : Rota | one l : Linha | r in l.rota
 }
 
-fact UmaRotaParaCadaLinha {
-    all r : Rota | one r.~rota
+// Linha
+sig Linha {
+    rota: one Rota
 }
 
-fact OnibusPertenceAUmaLinha {
-   all l : Linha | all o : Onibus | o in l.onibus iff l in o.linha
+fact TodaLinhaPossuiPeloMenosUmOnibus {
+    Linha in Onibus.linha
 }
 
-fact NaoExisteParadaSemRota {
-   all p : Parada | p in Rota.paradas
+// Onibus
+sig Onibus {
+    linha : one Linha,
+    localizacao : one Localizacao
+    // capacidade maxima de passageiros
 }
 
-fact MaximoUmaParadaPorLocalizacao {
+fact CapacidadeMaxima {
+    all o : Onibus | #o.~embarca <= 3
+}
+
+// TODO: implementar isto
+//fun mover[o : Onibus] {
+//}
+
+// TODO: implementar isto
+//fun parar[o : Onibus] {
+//}
+
+// Parada
+sig  Parada {
+    localizacao : one Localizacao
+}
+
+fact TodaParadaEstaEmAlgumaRota {
+   Parada in Rota.paradas
+}
+
+fact ParadasEmLocalizacoesDiferentes {
     all p1 : Parada | all p2 : Parada | p1.localizacao = p2.localizacao iff p1 = p2
 }
 
-fact ParadaEmViaDaRota {
-    all l : Linha |
-    l.rota.paradas.localizacao in l.rota.percurso.localizacoes
+// Localizacao
+sig Localizacao {
 }
 
-fact RotaEmMapaViario {
-    Rota.percurso in MapaViario.vias
+fact NaoHaLocalizacoesOrfas {
+    Localizacao in (Parada.localizacao + Onibus.localizacao)
 }
 
-fact OnibusSempreNaRota {
-   all o: Onibus | o.localizacao in o.linha.rota.percurso.localizacoes
+// Passageiro
+sig Passageiro {
+    esperaEm : lone Parada,
+    embarca : lone Onibus
 }
 
-fact LocalizacaoSempreEmVia {
-    all l : Localizacao | l in Via.localizacoes
+fact PassageiroNoOnibusXorNaParada {
+    all p : Passageiro | one p.esperaEm <=> no p.embarca
+    all p : Passageiro | one p.embarca <=> no p.esperaEm
 }
 
 pred testeSemCasosTriviais[] {
@@ -73,6 +93,7 @@ pred testeSemCasosTriviais[] {
     #Localizacao > 3
     all r: Rota | #r.percurso > 1
     all r: Rota | #r.paradas > 1
+    #Passageiro > 0
 }
 
 pred show[]{
@@ -80,23 +101,13 @@ pred show[]{
 }
 
 assert VerificacaoDoModelo {
-    // Nao ha linha sem onibus
-    all l : Linha | some l.onibus
+    all r : Rota | all l1, l2: Linha | r in l1.rota and not l1 = l2 => not r in l2.rota
 
     // Nao ha rota sem linha
     all r: Rota | r in Linha.rota
 
     // Rota dentro de um mapa viario
     all r: Rota | some m : MapaViario | r.percurso in m.vias  
-
-    // Nao ha onibus sem linha
-    all o: Onibus | some l: Linha | o in l.onibus
-
-    // Onibus so pertence a uma linha
-    all l1, l2 : Linha | all o : Onibus | (o in l1.onibus) and (o in l2.onibus) => (l1 = l2)
-
-    // Onibus nao sai da rota
-    all o : Onibus | o.localizacao in o.linha.rota.percurso.localizacoes
 
     // Nao ha parada fora da rota
     all p: Parada | some r: Rota | p in r.paradas
@@ -106,9 +117,6 @@ assert VerificacaoDoModelo {
 
     // Nao ha duas paradas na mesma localizacao
     all p1, p2 : Parada | (p1.localizacao = p2.localizacao) => (p1 = p2)
-
-    // Nao ha parada fora de via
-    all p : Parada | p.localizacao in Via.localizacoes
 
     // Ha pelo menos uma via no mapa viário
     some MapaViario.vias
