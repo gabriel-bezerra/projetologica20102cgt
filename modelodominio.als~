@@ -125,7 +125,7 @@ abstract sig Event {
 }
 
 pred init [t : Time] {
-    passageiroEsperando[Passageiro, t]
+    Passageiro.esperaEm
 }
 
 fact traces {
