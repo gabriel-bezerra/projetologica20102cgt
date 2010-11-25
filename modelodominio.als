@@ -91,8 +91,10 @@ fact NaoHaLocalizacoesOrfas {
 
 // Passageiro
 fact PassageiroNoOnibusXorNaParada {
-    all p : Passageiro | one p.esperaEm <=> no p.embarcaEm
-    all p : Passageiro | one p.embarcaEm <=> no p.esperaEm
+    all t : Time {
+        all p : Passageiro | one p.esperaEm.t <=> no p.embarcaEm.t
+        all p : Passageiro | one p.embarcaEm.t <=> no p.esperaEm.t
+    }
 }
 
 // Predicados
@@ -122,14 +124,28 @@ pred passageiroEmbarcaNoOnibus[p : Passageiro, o : Onibus, t, t' : Time] {
 //}
 
 abstract sig Event {
+    t, t' : Time
+}
+
+abstract sig EmbarqueEvent extends Event {
+    p : Passageiro,
+    o : Onibus
+} {
+    passageiroEmbarcaNoOnibus[p, o, t, t']
 }
 
 pred init [t : Time] {
+    // Todos os passageiros estão esperando os ônibus
     passageiroEsperando[Passageiro, t]
 }
 
 fact traces {
     init[first]
+
+    all pre : Time - last | let pos = pre.next | some e : Event {
+        e.t = pre and e.t' = pos
+        // TODO: verificar se isto aqui está certo, no slide é diferente
+    }
 }
 
 run onibusParadoNaParada for 3
