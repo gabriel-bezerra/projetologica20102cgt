@@ -87,6 +87,18 @@ fact PassageiroNoOnibusXorNaParada {
     all p : Passageiro | one p.embarca <=> no p.esperaEm
 }
 
+// Predicados onibus-parada
+pred onibusPassaPorParada[o : Onibus, p : Parada] {
+    p in o.linha.rota.paradas
+}
+
+pred onibusParadoNaParada [o : Onibus, p : Parada] {
+    onibusPassaPorParada[o, p]
+    o.localizacao = p.localizacao
+}
+
+run onibusParadoNaParada for 3
+
 pred testeSemCasosTriviais[] {
     #Onibus > 2
     #Linha > 1
