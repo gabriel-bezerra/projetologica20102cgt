@@ -139,10 +139,12 @@ fact traces {
 // Mudancas de estado
 
 pred passageiroEmbarcaNoOnibus[p : Passageiro, o : Onibus, t, t' : Time] {
-    passageiroEsperando[p, t]
-    onibusParadoNaParada[o, p.esperaEm.t, t]
+    some a: Parada {
+        passageiroEsperandoNaParada[p, a, t]
+        onibusParadoNaParada[o, a, t]
+    }
 
-    p.embarcaEm.t' = o
+    passageiroEmbarcadoNoOnibus[p, o, t']
 }
 
 pred passageiroDesembarcaNaParada[p : Passageiro, a : Parada, t, t' : Time] {
