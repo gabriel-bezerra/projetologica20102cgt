@@ -181,8 +181,9 @@ abstract sig OnibusMoveEvent extends Event {
 }
 
 //------------------------------------------------------------------------------
-// Runs, asserts and checks - organizar depois
+// Run
 
+pred show {}
 //run show for 3
 
 pred testeSemCasosTriviais[] {
@@ -190,39 +191,24 @@ pred testeSemCasosTriviais[] {
     #Linha > 1
     #Localizacao > 3
     all r: Rota | #r.percurso > 1
-    all r: Rota | #r.paradas > 1
     #Passageiro > 0
 }
+//run testeSemCasosTriviais
 
-pred show {}
+//------------------------------------------------------------------------------
+// Check
 
-assert VerificacaoDoModelo {
-    all r : Rota | all l1, l2: Linha | r in l1.rota and not l1 = l2 => not r in l2.rota
-
-    // Nao ha rota sem linha
-    all r: Rota | r in Linha.rota
-
-    // Rota dentro de um mapa viario
-    all r: Rota | some m : MapaViario | r.percurso in m.vias
-
-    // Nao ha parada fora da rota
-    all p: Parada | some r: Rota | p in r.paradas
-
-    // Cada rota tem pelo menos uma parada
-    all r : Rota | some r.paradas
-
-    // Nao ha duas paradas na mesma localizacao
-    all p1, p2 : Parada | (p1.localizacao = p2.localizacao) => (p1 = p2)
-
-    // Ha pelo menos uma via no mapa viário
-    some MapaViario.vias
-
-    // Nao ha rota sem alguma via no percurso
-    all r: Rota | some r.percurso
-}
-
-assert passageiroEmbarcadoDeveDesembarcarEmAlgumMomento {
+assert PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento {
     all p: Passageiro | all t: Time | (passageiroEmbarcado[p, t] => (some t': Time | t' in t.^next and passageiroEsperando[p, t']))
 }
+// check PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento for 10
 
-check passageiroEmbarcadoDeveDesembarcarEmAlgumMomento for 10
+assert Dois {
+    
+}
+// check Dois for 10
+
+assert TodoOnibusPassaPorAlgumaParada {
+    all o: Onibus | some a : Parada | onibusPassaPorParada[o, a]
+}
+check  TodoOnibusPassaPorAlgumaParada for 10
