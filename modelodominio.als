@@ -146,10 +146,10 @@ pred passageiroDesembarcaNaParada[p : Passageiro, a : Parada, t, t' : Time] {
     p.esperaEm.t' = a
 }
 
-pred onibusMoveParaAParada[o: Onibus, p: Parada, t, t': Time] {
-    not onibusEstaNaParada[o, p, t]
+pred onibusMove[o: Onibus, l: Localizacao, t, t': Time] {
+    not o.localizacao.t = l
 
-    onibusEstaNaParada[o, p, t']
+    o.localizacao.t' = l
 }
 
 //------------------------------------------------------------------------------
@@ -175,9 +175,9 @@ abstract sig DesembarqueEvent extends Event {
 
 abstract sig OnibusMoveEvent extends Event {
     o : Onibus,
-    p : Parada
+    l : Localizacao
 } {
-    onibusMoveParaAParada[o, p, t, t']
+    onibusMove[o, l, t, t']
 }
 
 //------------------------------------------------------------------------------
