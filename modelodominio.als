@@ -208,6 +208,24 @@ run testeSemCasosTriviais for 4
 //------------------------------------------------------------------------------
 // Check
 
+// verifica a correção dos predicados sobre passageiro embarcado
+assert CorrecaoEmbarcados {
+    all p: Passageiro | all t: Time {
+        passageiroEmbarcado[p, t]
+            => some o: Onibus | passageiroEmbarcadoNoOnibus[p, o, t]
+    }
+}
+check CorrecaoEmbarcados for 10
+
+// verifica a correção dos predicados sobre passageiro esperando
+assert CorrecaoEsperandos {
+    all p: Passageiro | all t: Time {
+        passageiroEsperando[p, t]
+            => some a: Parada | passageiroEsperandoNaParada[p, a, t]
+    }
+}
+check CorrecaoEsperandos for 10
+
 assert PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento {
     all p: Passageiro | all t: Time {
         passageiroEmbarcado[p, t] =>
@@ -215,11 +233,6 @@ assert PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento {
     }
 }
 check PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento for 10
-
-assert Dois {
-    
-}
-check Dois for 10
 
 assert TodoOnibusPassaPorAlgumaParada {
     all o: Onibus | some a : Parada | onibusPassaPorParada[o, a]
