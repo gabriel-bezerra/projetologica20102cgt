@@ -91,6 +91,14 @@ pred passageiroEmbarcado[p : Passageiro, t : Time] {
     one p.embarcaEm.t
 }
 
+pred passageiroEsperandoNaParada[p: Passageiro, a: Parada, t : Time] {
+    p.esperaEm.t = a
+}
+
+pred passageiroEmbarcadoNoOnibus[p: Passageiro, o: Onibus, t : Time] {
+    p.embarcaEm.t = o
+}
+
 pred onibusPassaPorParada[o : Onibus, p : Parada] {
     p in o.linha.rota.paradas
 }
@@ -184,7 +192,7 @@ abstract sig OnibusMoveEvent extends Event {
 // Run
 
 pred show {}
-//run show for 3
+run show for 3
 
 pred testeSemCasosTriviais[] {
     #Onibus > 2
@@ -193,20 +201,23 @@ pred testeSemCasosTriviais[] {
     all r: Rota | #r.percurso > 1
     #Passageiro > 0
 }
-//run testeSemCasosTriviais
+run testeSemCasosTriviais for 4
 
 //------------------------------------------------------------------------------
 // Check
 
 assert PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento {
-    all p: Passageiro | all t: Time | (passageiroEmbarcado[p, t] => (some t': Time | t' in t.^next and passageiroEsperando[p, t']))
+    all p: Passageiro | all t: Time {
+        passageiroEmbarcado[p, t] =>
+            (some t': Time | t' in t.^next and passageiroEsperando[p, t'])
+    }
 }
-// check PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento for 10
+check PassageiroEmbarcadoDeveDesembarcarEmAlgumMomento for 10
 
 assert Dois {
     
 }
-// check Dois for 10
+check Dois for 10
 
 assert TodoOnibusPassaPorAlgumaParada {
     all o: Onibus | some a : Parada | onibusPassaPorParada[o, a]
