@@ -105,9 +105,13 @@ pred onibusParadoNaParada [o : Onibus, p : Parada, t : Time] {
 }
 
 //------------------------------------------------------------------------------
-//Estado inicial do sistema
+//Estados inicial e final do sistema
 
 pred init [t : Time] {
+    all p: Passageiro | passageiroEsperando[p, t]
+}
+
+pred finish [t : Time] {
     all p: Passageiro | passageiroEsperando[p, t]
 }
 
@@ -116,6 +120,7 @@ pred init [t : Time] {
 
 fact traces {
     init[first]
+    finish[last]
 
     all pre : Time - last | let pos = pre.next | some e : Event {
         e.t = pre and e.t' = pos
