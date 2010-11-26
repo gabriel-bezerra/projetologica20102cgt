@@ -1,10 +1,12 @@
 module Onibus
 
-open util/ordering[Time]
+open util/ordering[Time] as to
 
 abstract sig Time {}
 
-// Mapa Viario
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+// Entidades do dominio
+
 one sig MapaViario {
     vias : some Via
 }
@@ -24,7 +26,6 @@ sig Linha {
 sig Onibus {
     linha : one Linha,
     localizacao : Localizacao->Time
-    // capacidade maxima de passageiros
 }
 
 sig  Parada {
@@ -39,57 +40,37 @@ sig Passageiro {
     embarcaEm : Onibus lone-> Time
 }
 
-// Via
-/*
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+// Fatos
+
 fact TodaViaEstaEmMapaViario {
     Via in MapaViario.vias
 }
-*/
 
-// Rota
-/*
 fact TodaRotaPossuiMaisDeUmaParada {
     all r : Rota | #r.paradas > 1
 }
-*/
 
-// Linha
 fact TodaRotaPertenceAUmaUnicaLinha {
     all r : Rota | one l : Linha | r in l.rota
 }
 
-/*
 fact TodaLinhaPossuiPeloMenosUmOnibus {
     Linha in Onibus.linha
 }
-*/
 
-// Onibus
-/*
-fact CapacidadeMaxima {
-    all o : Onibus | #o.~embarcaEm <= 3
-}
-*/
-
-// Parada
-/*
 fact TodaParadaEstaEmAlgumaRota {
    Parada in Rota.paradas
 }
-*/
 
 fact ParadasEmLocalizacoesDiferentes {
     all p1 : Parada | all p2 : Parada | p1.localizacao = p2.localizacao iff p1 = p2
 }
 
-// Localizacao
-/*
 fact NaoHaLocalizacoesOrfas {
     Localizacao in (Parada.localizacao + Onibus.localizacao.Time)
 }
-*/
 
-// Passageiro
 fact PassageiroNoOnibusXorNaParada {
     all t : Time {
         all p : Passageiro | one p.esperaEm.t <=> no p.embarcaEm.t
@@ -97,7 +78,9 @@ fact PassageiroNoOnibusXorNaParada {
     }
 }
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------
 // Predicados
+
 pred passageiroEsperando[p : Passageiro, t : Time] {
     one p.esperaEm.t
 }
@@ -111,7 +94,28 @@ pred onibusParadoNaParada [o : Onibus, p : Parada, t : Time] {
     o.localizacao.t = p.localizacao
 }
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+//Estado inicial do sistema
+
+pred init [t : Time] {
+    all p: Passageiro | passageiroEsperando[p, t]
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+//Trilhas
+
+fact traces {
+    init[first]
+
+    all pre : Time - last | let pos = pre.next | some e : Event {
+        e.t = pre and e.t' = pos
+        (e in EmbarqueEvent)
+    }
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------
 // Mudancas de estado
+
 pred passageiroEmbarcaNoOnibus[p : Passageiro, o : Onibus, t, t' : Time] {
     passageiroEsperando[p, t]
     onibusParadoNaParada[o, p.esperaEm.t, t]
@@ -119,9 +123,8 @@ pred passageiroEmbarcaNoOnibus[p : Passageiro, o : Onibus, t, t' : Time] {
     p.embarcaEm.t' = o
 }
 
-// TODO: implementar isto
-//fun mover[o : Onibus] {
-//}
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+// Eventos
 
 abstract sig Event {
     t, t' : Time
@@ -134,21 +137,10 @@ abstract sig EmbarqueEvent extends Event {
     passageiroEmbarcaNoOnibus[p, o, t, t']
 }
 
-pred init [t : Time] {
-    // Todos os passageiros estão esperando os ônibus
-    passageiroEsperando[Passageiro, t]
-}
+//-----------------------------------------------------------------------------------------------------------------------------------------------
+// Runs, asserts and checks - organizar depois
 
-fact traces {
-    init[first]
-
-    all pre : Time - last | let pos = pre.next | some e : Event {
-        e.t = pre and e.t' = pos
-        // TODO: verificar se isto aqui está certo, no slide é diferente
-    }
-}
-
-run onibusParadoNaParada for 3
+run show for 3
 
 pred testeSemCasosTriviais[] {
     #Onibus > 2
