@@ -25,7 +25,7 @@ sig Linha {
 
 sig Onibus {
     linha : one Linha,
-    localizacao : Localizacao->Time
+    localizacao : Localizacao one->Time
 }
 
 sig  Parada {
@@ -200,5 +200,9 @@ assert VerificacaoDoModelo {
     all r: Rota | some r.percurso
 }
 
-//check VerificacaoDoModelo for 10
-run testeSemCasosTriviais for 4
+assert False {
+    all t, t', t'', t''' : Time | all p : Passageiro | all a : Parada | all o : Onibus |
+         passageiroEmbarcaNoOnibus[p, o, t, t'] && passageiroDesembarcaNaParada[p, a, t'', t'''] => p.esperaEm.t != a 
+}
+
+check False for 4
