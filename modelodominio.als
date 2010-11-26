@@ -146,12 +146,12 @@ pred passageiroEmbarcaNoOnibus[p : Passageiro, o : Onibus, t, t' : Time] {
 }
 
 pred passageiroDesembarcaNaParada[p : Passageiro, a : Parada, t, t' : Time] {
-    let o = p.embarcaEm.t {
-        passageiroEmbarcado[p, t]
+    some o: Onibus {
+        passageiroEmbarcadoNoOnibus[p, o, t]
         onibusParadoNaParada[o, a, t]
     }
 
-    p.esperaEm.t' = a
+    passageiroEsperandoNaParada[p, a, t']
 }
 
 pred onibusMove[o: Onibus, l: Localizacao, t, t': Time] {
