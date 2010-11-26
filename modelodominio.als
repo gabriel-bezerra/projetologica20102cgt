@@ -1,6 +1,6 @@
 module Onibus
 
-open util/ordering[Time] as to
+open util/ordering[Time]
 
 abstract sig Time {}
 
@@ -87,6 +87,10 @@ pred passageiroEsperando[p : Passageiro, t : Time] {
     one p.esperaEm.t
 }
 
+pred passageiroEmbarcado[p : Passageiro, t : Time] {
+    one p.embarcaEm.t
+}
+
 pred onibusPassaPorParada[o : Onibus, p : Parada] {
     p in o.linha.rota.paradas
 }
@@ -111,7 +115,6 @@ fact traces {
 
     all pre : Time - last | let pos = pre.next | some e : Event {
         e.t = pre and e.t' = pos
-        (e in EmbarqueEvent)
     }
 }
 
@@ -123,6 +126,16 @@ pred passageiroEmbarcaNoOnibus[p : Passageiro, o : Onibus, t, t' : Time] {
     onibusParadoNaParada[o, p.esperaEm.t, t]
 
     p.embarcaEm.t' = o
+}
+
+
+pred passageiroDesembarcaNaParada[p : Passageiro, a : Parada, t, t' : Time] {
+    let o = p.embarcaEm.t {
+        passageiroEmbarcado[p, t]
+        onibusParadoNaParada[o, a, t]
+    }
+
+    p.esperaEm.t' = a
 }
 
 //------------------------------------------------------------------------------
@@ -137,6 +150,13 @@ abstract sig EmbarqueEvent extends Event {
     o : Onibus
 } {
     passageiroEmbarcaNoOnibus[p, o, t, t']
+}
+
+abstract sig DesembarqueEvent extends Event {
+        p : Passageiro,
+            a : Parada
+} {
+        passageiroDesembarcaNaParada[p, a, t, t']
 }
 
 //------------------------------------------------------------------------------
