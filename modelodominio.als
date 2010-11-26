@@ -95,15 +95,23 @@ pred onibusPassaPorParada[o : Onibus, p : Parada] {
     p in o.linha.rota.paradas
 }
 
-pred onibusParadoNaParada [o : Onibus, p : Parada, t : Time] {
-    onibusPassaPorParada[o, p]
+pred onibusEstaNaParada[o: Onibus, p: Parada, t: Time] {
     o.localizacao.t = p.localizacao
 }
 
+pred onibusParadoNaParada [o : Onibus, p : Parada, t : Time] {
+    onibusPassaPorParada[o, p]
+    onibusEstaNaParada[o, p, t]
+}
+
 //------------------------------------------------------------------------------
-//Estado inicial do sistema
+//Estados inicial e final do sistema
 
 pred init [t : Time] {
+    all p: Passageiro | passageiroEsperando[p, t]
+}
+
+pred finish [t : Time] {
     all p: Passageiro | passageiroEsperando[p, t]
 }
 
@@ -112,6 +120,7 @@ pred init [t : Time] {
 
 fact traces {
     init[first]
+    finish[last]
 
     all pre : Time - last | let pos = pre.next | some e : Event {
         e.t = pre and e.t' = pos
@@ -128,7 +137,6 @@ pred passageiroEmbarcaNoOnibus[p : Passageiro, o : Onibus, t, t' : Time] {
     p.embarcaEm.t' = o
 }
 
-
 pred passageiroDesembarcaNaParada[p : Passageiro, a : Parada, t, t' : Time] {
     let o = p.embarcaEm.t {
         passageiroEmbarcado[p, t]
@@ -136,6 +144,12 @@ pred passageiroDesembarcaNaParada[p : Passageiro, a : Parada, t, t' : Time] {
     }
 
     p.esperaEm.t' = a
+}
+
+pred onibusMoveParaAParada[o: Onibus, p: Parada, t, t': Time] {
+    not onibusEstaNaParada[o, p, t]
+
+    onibusEstaNaParada[o, p, t']
 }
 
 //------------------------------------------------------------------------------
@@ -153,10 +167,17 @@ abstract sig EmbarqueEvent extends Event {
 }
 
 abstract sig DesembarqueEvent extends Event {
-        p : Passageiro,
-            a : Parada
+    p : Passageiro,
+    a : Parada
 } {
-        passageiroDesembarcaNaParada[p, a, t, t']
+    passageiroDesembarcaNaParada[p, a, t, t']
+}
+
+abstract sig OnibusMoveEvent extends Event {
+    o : Onibus,
+    p : Parada
+} {
+    onibusMoveParaAParada[o, p, t, t']
 }
 
 //------------------------------------------------------------------------------
