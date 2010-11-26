@@ -183,7 +183,7 @@ abstract sig OnibusMoveEvent extends Event {
 //------------------------------------------------------------------------------
 // Runs, asserts and checks - organizar depois
 
-run show for 3
+//run show for 3
 
 pred testeSemCasosTriviais[] {
     #Onibus > 2
@@ -221,9 +221,8 @@ assert VerificacaoDoModelo {
     all r: Rota | some r.percurso
 }
 
-assert False {
-    all t, t', t'', t''' : Time | all p : Passageiro | all a : Parada | all o : Onibus |
-         passageiroEmbarcaNoOnibus[p, o, t, t'] && passageiroDesembarcaNaParada[p, a, t'', t'''] => p.esperaEm.t != a 
+assert passageiroEmbarcadoDeveDesembarcarEmAlgumMomento {
+    all p: Passageiro | all t: Time | (passageiroEmbarcado[p, t] => (some t': Time | t' in t.^next and passageiroEsperando[p, t']))
 }
 
-check False for 4
+check passageiroEmbarcadoDeveDesembarcarEmAlgumMomento for 10
