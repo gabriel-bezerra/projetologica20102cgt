@@ -80,6 +80,13 @@ fact PassageiroNoOnibusXorNaParada {
     }
 }
 
+fact PassageiroNaoEmbarcaForaDaParada {
+    all t, t': Time | all p: Passageiro | all a: Parada | all o: Onibus {
+        passageiroEsperandoNaParada[p, a, t] and not onibusParadoNaParada[o, a, t]
+            => not passageiroEmbarcadoNoOnibus[p, o, t']
+    }
+}
+
 //------------------------------------------------------------------------------
 // Predicados
 
